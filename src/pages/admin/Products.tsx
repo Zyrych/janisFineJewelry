@@ -85,7 +85,7 @@ export default function AdminProducts() {
     if (imageFile) {
       const fileExt = imageFile.name.split('.').pop();
       const fileName = `${Date.now()}-${Math.random().toString(36).substring(2)}.${fileExt}`;
-      const { url, error } = await db.uploadFile('product-images', fileName, imageFile, session.access_token);
+      const { url, error } = await db.uploadFile('productImages', fileName, imageFile, session.access_token);
 
       if (error) {
         console.error('Failed to upload image:', error.message);
