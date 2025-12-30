@@ -71,9 +71,12 @@ export default function AdminProducts() {
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = Array.from(e.target.files || []);
     if (files.length > 0) {
+      // Append new files to existing
       setImageFiles((prev) => [...prev, ...files]);
       const previews = files.map((file) => URL.createObjectURL(file));
       setImagePreviews((prev) => [...prev, ...previews]);
+      // Reset input to allow selecting same files again
+      e.target.value = '';
     }
   };
 
@@ -122,10 +125,14 @@ export default function AdminProducts() {
       is_active: true,
     };
 
+    console.log('Saving product with data:', productData);
+
     if (editingProduct) {
-      await db.update('products', productData, { id: editingProduct.id }, session.access_token);
+      const result = await db.update('products', productData, { id: editingProduct.id }, session.access_token);
+      console.log('Update result:', result);
     } else {
-      await db.insert('products', productData, session.access_token);
+      const result = await db.insert('products', productData, session.access_token);
+      console.log('Insert result:', result);
     }
 
     setFormData({ name: '', description: '', price: '', image_url: '', category: '', stock: '' });
@@ -221,6 +228,9 @@ export default function AdminProducts() {
             onClick={() => {
               setEditingProduct(null);
               setFormData({ name: '', description: '', price: '', image_url: '', category: '', stock: '' });
+              setImageFiles([]);
+              setImagePreviews([]);
+              setExistingImages([]);
               setShowForm(true);
             }}
             className="text-white/80 hover:text-white text-sm"
