@@ -349,51 +349,66 @@ export default function AdminProducts() {
               {editingProduct ? 'Edit Product' : 'Add Product'}
             </h2>
             <form onSubmit={handleSubmit} className="space-y-3">
-              <input
-                type="text"
-                placeholder="Product Name *"
-                value={formData.name}
-                onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                className="w-full px-3 py-2 border border-stone-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#B8956B] focus:border-transparent"
-                required
-              />
-              <textarea
-                placeholder="Description"
-                value={formData.description}
-                onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                className="w-full px-3 py-2 border border-stone-200 rounded-lg text-sm resize-none focus:outline-none focus:ring-2 focus:ring-[#B8956B] focus:border-transparent"
-                rows={2}
-              />
-              <div className="grid grid-cols-2 gap-3">
+              <div>
+                <label className="block text-sm font-medium text-[#5C4A3A] mb-1">Product Name *</label>
                 <input
-                  type="number"
-                  placeholder="Price *"
-                  value={formData.price}
-                  onChange={(e) => setFormData({ ...formData, price: e.target.value })}
+                  type="text"
+                  placeholder="Enter product name"
+                  value={formData.name}
+                  onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                   className="w-full px-3 py-2 border border-stone-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#B8956B] focus:border-transparent"
                   required
-                  step="0.01"
-                />
-                <input
-                  type="number"
-                  placeholder="Stock"
-                  value={formData.stock}
-                  onChange={(e) => setFormData({ ...formData, stock: e.target.value })}
-                  className="w-full px-3 py-2 border border-stone-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#B8956B] focus:border-transparent"
                 />
               </div>
-              <select
-                value={formData.category}
-                onChange={(e) => setFormData({ ...formData, category: e.target.value })}
-                className="w-full px-3 py-2 border border-stone-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#B8956B] focus:border-transparent"
-              >
-                <option value="">Select Category</option>
-                {CATEGORIES.map((cat) => (
-                  <option key={cat} value={cat}>
-                    {cat.charAt(0).toUpperCase() + cat.slice(1)}
-                  </option>
-                ))}
-              </select>
+              <div>
+                <label className="block text-sm font-medium text-[#5C4A3A] mb-1">Description</label>
+                <textarea
+                  placeholder="Enter product description"
+                  value={formData.description}
+                  onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+                  className="w-full px-3 py-2 border border-stone-200 rounded-lg text-sm resize-none focus:outline-none focus:ring-2 focus:ring-[#B8956B] focus:border-transparent"
+                  rows={2}
+                />
+              </div>
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-sm font-medium text-[#5C4A3A] mb-1">Price *</label>
+                  <input
+                    type="number"
+                    placeholder="0.00"
+                    value={formData.price}
+                    onChange={(e) => setFormData({ ...formData, price: e.target.value })}
+                    className="w-full px-3 py-2 border border-stone-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#B8956B] focus:border-transparent"
+                    required
+                    step="0.01"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-[#5C4A3A] mb-1">Stock</label>
+                  <input
+                    type="number"
+                    placeholder="0"
+                    value={formData.stock}
+                    onChange={(e) => setFormData({ ...formData, stock: e.target.value })}
+                    className="w-full px-3 py-2 border border-stone-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#B8956B] focus:border-transparent"
+                  />
+                </div>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-[#5C4A3A] mb-1">Category</label>
+                <select
+                  value={formData.category}
+                  onChange={(e) => setFormData({ ...formData, category: e.target.value })}
+                  className="w-full px-3 py-2 border border-stone-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#B8956B] focus:border-transparent"
+                >
+                  <option value="">Select Category</option>
+                  {CATEGORIES.map((cat) => (
+                    <option key={cat} value={cat}>
+                      {cat.charAt(0).toUpperCase() + cat.slice(1)}
+                    </option>
+                  ))}
+                </select>
+              </div>
               {/* Image Upload */}
               <div className="space-y-2">
                 <label className="block text-sm text-[#5C4A3A] font-medium">Product Images</label>
