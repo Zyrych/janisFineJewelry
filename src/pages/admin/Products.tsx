@@ -16,6 +16,7 @@ export default function AdminProducts() {
   const [filterOpen, setFilterOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const filterRef = useRef<HTMLDivElement>(null);
+  const formRef = useRef<HTMLDivElement>(null);
 
   // Close dropdown when clicking outside
   useEffect(() => {
@@ -133,6 +134,10 @@ export default function AdminProducts() {
     setImageFile(null);
     setImagePreview(product.image_url || null);
     setShowForm(true);
+    // Scroll to form after it renders
+    setTimeout(() => {
+      formRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }, 100);
   };
 
   const toggleActive = async (product: Product) => {
@@ -288,7 +293,7 @@ export default function AdminProducts() {
         )}
 
         {showForm && (
-          <div className="bg-white rounded-xl p-4 shadow-sm mb-4">
+          <div ref={formRef} className="bg-white rounded-xl p-4 shadow-sm mb-4">
             <h2 className="font-semibold text-[#5C4A3A] mb-3">
               {editingProduct ? 'Edit Product' : 'Add Product'}
             </h2>
