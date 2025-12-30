@@ -89,6 +89,27 @@ export default function AdminProducts() {
     setExistingImages((prev) => prev.filter((_, i) => i !== index));
   };
 
+  const setMainExistingImage = (index: number) => {
+    setExistingImages((prev) => {
+      const newArr = [...prev];
+      const [selected] = newArr.splice(index, 1);
+      return [selected, ...newArr];
+    });
+  };
+
+  const setMainNewImage = (index: number) => {
+    setImageFiles((prev) => {
+      const newArr = [...prev];
+      const [selected] = newArr.splice(index, 1);
+      return [selected, ...newArr];
+    });
+    setImagePreviews((prev) => {
+      const newArr = [...prev];
+      const [selected] = newArr.splice(index, 1);
+      return [selected, ...newArr];
+    });
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!session?.access_token) return;
@@ -380,10 +401,18 @@ export default function AdminProducts() {
                 {existingImages.length > 0 && (
                   <div className="flex flex-wrap gap-2">
                     {existingImages.map((url, index) => (
-                      <div key={`existing-${index}`} className="relative w-20 h-20 rounded-lg overflow-hidden bg-stone-100">
+                      <div key={`existing-${index}`} className="relative w-20 h-20 rounded-lg overflow-hidden bg-stone-100 group">
                         <img src={url} alt={`Product ${index + 1}`} className="w-full h-full object-cover" />
-                        {index === 0 && (
+                        {index === 0 ? (
                           <span className="absolute bottom-0 left-0 right-0 bg-[#B8956B] text-white text-[10px] text-center py-0.5">Main</span>
+                        ) : (
+                          <button
+                            type="button"
+                            onClick={() => setMainExistingImage(index)}
+                            className="absolute bottom-0 left-0 right-0 bg-black/60 text-white text-[10px] text-center py-0.5 opacity-0 group-hover:opacity-100 transition-opacity"
+                          >
+                            Set Main
+                          </button>
                         )}
                         <button
                           type="button"
@@ -400,9 +429,19 @@ export default function AdminProducts() {
                 {imagePreviews.length > 0 && (
                   <div className="flex flex-wrap gap-2">
                     {imagePreviews.map((url, index) => (
-                      <div key={`new-${index}`} className="relative w-20 h-20 rounded-lg overflow-hidden bg-stone-100 ring-2 ring-green-400">
+                      <div key={`new-${index}`} className="relative w-20 h-20 rounded-lg overflow-hidden bg-stone-100 ring-2 ring-green-400 group">
                         <img src={url} alt={`New ${index + 1}`} className="w-full h-full object-cover" />
-                        <span className="absolute bottom-0 left-0 right-0 bg-green-500 text-white text-[10px] text-center py-0.5">New</span>
+                        {index === 0 && existingImages.length === 0 ? (
+                          <span className="absolute bottom-0 left-0 right-0 bg-green-500 text-white text-[10px] text-center py-0.5">Main (New)</span>
+                        ) : (
+                          <button
+                            type="button"
+                            onClick={() => setMainNewImage(index)}
+                            className="absolute bottom-0 left-0 right-0 bg-black/60 text-white text-[10px] text-center py-0.5 opacity-0 group-hover:opacity-100 transition-opacity"
+                          >
+                            Set Main
+                          </button>
+                        )}
                         <button
                           type="button"
                           onClick={() => removeNewImage(index)}
@@ -421,7 +460,7 @@ export default function AdminProducts() {
                   onChange={handleImageChange}
                   className="w-full px-3 py-2 border border-stone-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#B8956B] focus:border-transparent file:mr-3 file:py-1 file:px-3 file:rounded-full file:border-0 file:text-sm file:font-medium file:bg-[#B8956B] file:text-white hover:file:bg-[#A6845D]"
                 />
-                <p className="text-xs text-[#8B7355]">First image will be the main product image</p>
+                <p className="text-xs text-[#8B7355]">Hover and click "Set Main" to choose the main image</p>
               </div>
               <div className="flex gap-2">
                 <button
