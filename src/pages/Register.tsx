@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 
@@ -10,8 +10,36 @@ export default function Register() {
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(false);
-  const { signUp } = useAuth();
+  const [resendCooldown, setResendCooldown] = useState(0);
+  const [resendLoading, setResendLoading] = useState(false);
+  const [resendSuccess, setResendSuccess] = useState(false);
+  const { signUp, resendVerification } = useAuth();
   const navigate = useNavigate();
+
+  useEffect(() => {
+    if (resendCooldown > 0) {
+      const timer = setTimeout(() => setResendCooldown(resendCooldown - 1), 1000);
+      return () => clearTimeout(timer);
+    }
+  }, [resendCooldown]);
+
+  const handleResend = async () => {
+    if (resendCooldown > 0 || resendLoading) return;
+
+    setResendLoading(true);
+    setResendSuccess(false);
+    setError('');
+
+    try {
+      await resendVerification(email);
+      setResendSuccess(true);
+      setResendCooldown(60);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to resend email');
+    } finally {
+      setResendLoading(false);
+    }
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -52,12 +80,39 @@ export default function Register() {
           <p className="text-[#8B7355] mb-6">
             We've sent a confirmation link to <strong>{email}</strong>. Please click the link to activate your account.
           </p>
-          <Link
-            to="/login"
-            className="inline-block bg-[#B8956B] text-white px-6 py-3 rounded-xl font-semibold hover:bg-[#A6845D] transition-colors"
-          >
-            Go to Sign In
-          </Link>
+
+          {error && (
+            <div className="bg-red-50 text-red-700 p-3 rounded-lg mb-4 text-sm">
+              {error}
+            </div>
+          )}
+
+          {resendSuccess && (
+            <div className="bg-green-50 text-green-700 p-3 rounded-lg mb-4 text-sm">
+              Verification email sent!
+            </div>
+          )}
+
+          <div className="space-y-3">
+            <Link
+              to="/login"
+              className="block w-full bg-[#B8956B] text-white px-6 py-3 rounded-xl font-semibold hover:bg-[#A6845D] transition-colors"
+            >
+              Go to Sign In
+            </Link>
+
+            <button
+              onClick={handleResend}
+              disabled={resendCooldown > 0 || resendLoading}
+              className="block w-full bg-white text-[#5C4A3A] px-6 py-3 rounded-xl font-medium border border-stone-200 hover:border-[#B8956B] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              {resendLoading
+                ? 'Sending...'
+                : resendCooldown > 0
+                ? `Resend in ${resendCooldown}s`
+                : "Didn't receive it? Resend"}
+            </button>
+          </div>
         </div>
       </div>
     );

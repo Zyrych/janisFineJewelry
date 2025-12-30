@@ -13,6 +13,7 @@ interface AuthContextType {
   signIn: (email: string, password: string) => Promise<void>;
   signOut: () => Promise<void>;
   refreshUser: () => Promise<void>;
+  resendVerification: (email: string) => Promise<void>;
   isCustomer: boolean;
   isAdmin: boolean;
   isSuperUser: boolean;
@@ -101,6 +102,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   };
 
+  const resendVerification = async (email: string) => {
+    const { error } = await supabase.auth.resend({
+      type: 'signup',
+      email,
+    });
+    if (error) throw error;
+  };
+
   const value = {
     user,
     session,
@@ -109,6 +118,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     signIn,
     signOut,
     refreshUser,
+    resendVerification,
     isCustomer: user?.role === 'customer',
     isAdmin: user?.role === 'admin' || user?.role === 'superuser',
     isSuperUser: user?.role === 'superuser',
