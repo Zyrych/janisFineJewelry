@@ -37,6 +37,14 @@ export default function AdminDashboard() {
             <p className="text-sm text-[#8B7355]">Confirm payment submissions</p>
           </Link>
 
+          <Link
+            to="/admin/lives"
+            className="bg-white p-4 rounded-xl shadow-sm border border-stone-100 hover:border-[#B8956B] transition-colors"
+          >
+            <h2 className="font-semibold text-[#5C4A3A]">Lives</h2>
+            <p className="text-sm text-[#8B7355]">Manage Facebook Live sessions</p>
+          </Link>
+
           {isSuperUser && (
             <>
               <Link

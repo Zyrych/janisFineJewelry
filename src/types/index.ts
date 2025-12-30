@@ -72,3 +72,27 @@ export interface CartItem {
   product: Product;
   quantity: number;
 }
+
+export type LiveStatus = 'upcoming' | 'live' | 'ended';
+
+export interface Live {
+  id: string;
+  title: string;
+  slug: string;
+  cover_image?: string;
+  scheduled_at: string;
+  facebook_link?: string;
+  status: LiveStatus;
+  created_at: string;
+}
+
+export interface LiveProduct {
+  id: string;
+  live_id: string;
+  product_id: string;
+  product?: Product;
+}
+
+export interface LiveWithProducts extends Live {
+  live_products?: LiveProduct[];
+}
