@@ -37,8 +37,9 @@ export default function AdminProducts() {
     category: '',
     stock: '',
   });
-  const [imageFile, setImageFile] = useState<File | null>(null);
-  const [imagePreview, setImagePreview] = useState<string | null>(null);
+  const [imageFiles, setImageFiles] = useState<File[]>([]);
+  const [imagePreviews, setImagePreviews] = useState<string[]>([]);
+  const [existingImages, setExistingImages] = useState<string[]>([]);
   const [uploading, setUploading] = useState(false);
 
   const formatPrice = (price: number) => {
@@ -68,11 +69,21 @@ export default function AdminProducts() {
   }
 
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      setImageFile(file);
-      setImagePreview(URL.createObjectURL(file));
+    const files = Array.from(e.target.files || []);
+    if (files.length > 0) {
+      setImageFiles((prev) => [...prev, ...files]);
+      const previews = files.map((file) => URL.createObjectURL(file));
+      setImagePreviews((prev) => [...prev, ...previews]);
     }
+  };
+
+  const removeNewImage = (index: number) => {
+    setImageFiles((prev) => prev.filter((_, i) => i !== index));
+    setImagePreviews((prev) => prev.filter((_, i) => i !== index));
+  };
+
+  const removeExistingImage = (index: number) => {
+    setExistingImages((prev) => prev.filter((_, i) => i !== index));
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -80,27 +91,32 @@ export default function AdminProducts() {
     if (!session?.access_token) return;
 
     setUploading(true);
-    let imageUrl = formData.image_url;
 
-    // Upload image if a new file is selected
-    if (imageFile) {
-      const fileExt = imageFile.name.split('.').pop();
+    // Upload new images
+    const uploadedUrls: string[] = [];
+    for (const file of imageFiles) {
+      const fileExt = file.name.split('.').pop();
       const fileName = `${Date.now()}-${Math.random().toString(36).substring(2)}.${fileExt}`;
-      const { url, error } = await db.uploadFile('productImages', fileName, imageFile, session.access_token);
+      const { url, error } = await db.uploadFile('productImages', fileName, file, session.access_token);
 
       if (error) {
         console.error('Failed to upload image:', error.message);
         setUploading(false);
         return;
       }
-      imageUrl = url;
+      if (url) uploadedUrls.push(url);
     }
+
+    // Combine existing images with newly uploaded ones
+    const allImages = [...existingImages, ...uploadedUrls];
+    const mainImage = allImages[0] || null;
 
     const productData = {
       name: formData.name,
       description: formData.description || null,
       price: parseFloat(formData.price),
-      image_url: imageUrl || null,
+      image_url: mainImage,
+      images: allImages.length > 0 ? allImages : null,
       category: formData.category || null,
       stock: parseInt(formData.stock) || 0,
       is_active: true,
@@ -113,8 +129,9 @@ export default function AdminProducts() {
     }
 
     setFormData({ name: '', description: '', price: '', image_url: '', category: '', stock: '' });
-    setImageFile(null);
-    setImagePreview(null);
+    setImageFiles([]);
+    setImagePreviews([]);
+    setExistingImages([]);
     setShowForm(false);
     setEditingProduct(null);
     setUploading(false);
@@ -131,8 +148,11 @@ export default function AdminProducts() {
       category: product.category || '',
       stock: product.stock.toString(),
     });
-    setImageFile(null);
-    setImagePreview(product.image_url || null);
+    setImageFiles([]);
+    setImagePreviews([]);
+    // Load existing images
+    const existing = product.images || (product.image_url ? [product.image_url] : []);
+    setExistingImages(existing);
     setShowForm(true);
     // Scroll to form after it renders
     setTimeout(() => {
@@ -345,33 +365,53 @@ export default function AdminProducts() {
               </select>
               {/* Image Upload */}
               <div className="space-y-2">
-                <label className="block text-sm text-[#5C4A3A] font-medium">Product Image</label>
-                {(imagePreview || formData.image_url) && (
-                  <div className="relative w-24 h-24 rounded-lg overflow-hidden bg-stone-100">
-                    <img
-                      src={imagePreview || formData.image_url}
-                      alt="Preview"
-                      className="w-full h-full object-cover"
-                    />
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setImageFile(null);
-                        setImagePreview(null);
-                        setFormData({ ...formData, image_url: '' });
-                      }}
-                      className="absolute top-1 right-1 bg-red-500 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs"
-                    >
-                      &times;
-                    </button>
+                <label className="block text-sm text-[#5C4A3A] font-medium">Product Images</label>
+                {/* Existing Images */}
+                {existingImages.length > 0 && (
+                  <div className="flex flex-wrap gap-2">
+                    {existingImages.map((url, index) => (
+                      <div key={`existing-${index}`} className="relative w-20 h-20 rounded-lg overflow-hidden bg-stone-100">
+                        <img src={url} alt={`Product ${index + 1}`} className="w-full h-full object-cover" />
+                        {index === 0 && (
+                          <span className="absolute bottom-0 left-0 right-0 bg-[#B8956B] text-white text-[10px] text-center py-0.5">Main</span>
+                        )}
+                        <button
+                          type="button"
+                          onClick={() => removeExistingImage(index)}
+                          className="absolute top-1 right-1 bg-red-500 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs"
+                        >
+                          &times;
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                )}
+                {/* New Image Previews */}
+                {imagePreviews.length > 0 && (
+                  <div className="flex flex-wrap gap-2">
+                    {imagePreviews.map((url, index) => (
+                      <div key={`new-${index}`} className="relative w-20 h-20 rounded-lg overflow-hidden bg-stone-100 ring-2 ring-green-400">
+                        <img src={url} alt={`New ${index + 1}`} className="w-full h-full object-cover" />
+                        <span className="absolute bottom-0 left-0 right-0 bg-green-500 text-white text-[10px] text-center py-0.5">New</span>
+                        <button
+                          type="button"
+                          onClick={() => removeNewImage(index)}
+                          className="absolute top-1 right-1 bg-red-500 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs"
+                        >
+                          &times;
+                        </button>
+                      </div>
+                    ))}
                   </div>
                 )}
                 <input
                   type="file"
                   accept="image/*"
+                  multiple
                   onChange={handleImageChange}
                   className="w-full px-3 py-2 border border-stone-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#B8956B] focus:border-transparent file:mr-3 file:py-1 file:px-3 file:rounded-full file:border-0 file:text-sm file:font-medium file:bg-[#B8956B] file:text-white hover:file:bg-[#A6845D]"
                 />
+                <p className="text-xs text-[#8B7355]">First image will be the main product image</p>
               </div>
               <div className="flex gap-2">
                 <button
@@ -386,8 +426,9 @@ export default function AdminProducts() {
                   onClick={() => {
                     setShowForm(false);
                     setEditingProduct(null);
-                    setImageFile(null);
-                    setImagePreview(null);
+                    setImageFiles([]);
+                    setImagePreviews([]);
+                    setExistingImages([]);
                   }}
                   className="flex-1 bg-stone-200 text-[#5C4A3A] py-2 rounded-xl text-sm font-medium"
                 >
